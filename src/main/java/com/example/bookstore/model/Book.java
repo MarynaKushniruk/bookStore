@@ -6,11 +6,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
-import org.springframework.lang.NonNull;
 
 @Entity
 @Table(name = "books")
@@ -21,13 +21,13 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NonNull
+    @NotNull
     private String title;
-    @NonNull
+    @NotNull
     private String author;
     @Column(unique = true)
     private String isbn;
-    @NonNull
+    @NotNull
     private BigDecimal price;
     private String description;
     private String coverImage;
