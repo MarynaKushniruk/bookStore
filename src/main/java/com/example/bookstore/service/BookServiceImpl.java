@@ -2,6 +2,7 @@ package com.example.bookstore.service;
 
 import com.example.bookstore.dto.BookDto;
 import com.example.bookstore.dto.BookSearchParametersDto;
+import com.example.bookstore.dto.CreateBookRequestDto;
 import com.example.bookstore.exception.EntityNotFoundException;
 import com.example.bookstore.mapper.BookMapper;
 import com.example.bookstore.model.Book;
@@ -21,8 +22,9 @@ public class BookServiceImpl implements BookService {
     private final BookSpecificationBuilder bookSpecificationBuilder;
 
     @Override
-    public Book save(Book book) {
-        return bookRepository.save(book);
+    public BookDto save(CreateBookRequestDto bookDto) {
+        Book book = bookMapper.toModel(bookDto);
+        return bookMapper.toDto(bookRepository.save(book));
     }
 
     @Override
@@ -42,16 +44,16 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDto update(Book book, Long id) {
+    public BookDto update(CreateBookRequestDto bookDto, Long id) {
         Book bookToUpdate = bookRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Can't find book by id "
                         + id));
-        bookToUpdate.setAuthor(book.getAuthor());
-        bookToUpdate.setTitle(book.getTitle());
-        bookToUpdate.setDescription(book.getDescription());
-        bookToUpdate.setPrice(book.getPrice());
-        bookToUpdate.setIsbn(book.getIsbn());
-        bookToUpdate.setCoverImage(book.getCoverImage());
+        bookToUpdate.setAuthor(bookDto.getAuthor());
+        bookToUpdate.setTitle(bookDto.getTitle());
+        bookToUpdate.setDescription(bookDto.getDescription());
+        bookToUpdate.setPrice(bookDto.getPrice());
+        bookToUpdate.setIsbn(bookDto.getIsbn());
+        bookToUpdate.setCoverImage(bookDto.getCoverImage());
         return bookMapper.toDto(bookRepository.save(bookToUpdate));
     }
 

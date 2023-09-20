@@ -2,7 +2,7 @@ package com.example.bookstore.controller;
 
 import com.example.bookstore.dto.BookDto;
 import com.example.bookstore.dto.BookSearchParametersDto;
-import com.example.bookstore.model.Book;
+import com.example.bookstore.dto.CreateBookRequestDto;
 import com.example.bookstore.service.BookService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -33,7 +33,7 @@ public class BookController {
     }
 
     @PostMapping
-    public Book save(@RequestBody @Valid Book book) {
+    public BookDto save(@RequestBody @Valid CreateBookRequestDto book) {
         return bookService.save(book);
     }
 
@@ -43,8 +43,9 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
-    public BookDto updateBookById(@RequestBody Book book, @PathVariable Long id) {
-        return bookService.update(book, id);
+    public BookDto updateBookById(@RequestBody CreateBookRequestDto bookDto,
+                                  @PathVariable Long id) {
+        return bookService.update(bookDto, id);
     }
 
     @DeleteMapping("/delete/{id}")
