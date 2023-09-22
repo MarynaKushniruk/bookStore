@@ -1,5 +1,6 @@
 package com.example.bookstore.repository;
 
+import com.example.bookstore.exception.EntityNotFoundException;
 import com.example.bookstore.model.Book;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +15,9 @@ public class BookSpecificationProviderManager
     @Override
     public SpecificationProvider<Book> getSpecificationProvider(String key) {
         return bookSpecificationProviders.stream()
-                .filter(p -> p.getKey().equals(key))
+                .filter(provider -> provider.getKey().equals(key))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Can't find correct "
+                .orElseThrow(() -> new EntityNotFoundException("Can't find correct "
                         + "specification provider for key " + key));
     }
 }
