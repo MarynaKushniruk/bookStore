@@ -2,7 +2,7 @@ package com.example.bookstore.controller;
 
 import com.example.bookstore.dto.BookDto;
 import com.example.bookstore.dto.BookSearchParametersDto;
-import com.example.bookstore.model.Book;
+import com.example.bookstore.dto.CreateBookRequestDto;
 import com.example.bookstore.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +41,7 @@ public class BookController {
 
     @PostMapping
     @Operation(summary = "Create a book", description = "Create and save a new book")
-    public Book save(@RequestBody @Valid Book book) {
+    public BookDto save(@RequestBody @Valid CreateBookRequestDto book) {
         return bookService.save(book);
     }
 
@@ -54,7 +54,7 @@ public class BookController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a book", description = "Update a book by id")
-    public BookDto updateBookById(@RequestBody Book book, @PathVariable Long id) {
+    public BookDto updateBookById(@RequestBody CreateBookRequestDto book, @PathVariable Long id) {
         return bookService.update(book, id);
     }
 
