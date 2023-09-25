@@ -1,8 +1,9 @@
 package com.example.bookstore.service;
 
-import com.example.bookstore.dto.BookDto;
-import com.example.bookstore.dto.BookSearchParametersDto;
-import com.example.bookstore.dto.CreateBookRequestDto;
+import com.example.bookstore.dto.bookdto.BookDto;
+import com.example.bookstore.dto.bookdto.BookDtoWithoutCategoryIds;
+import com.example.bookstore.dto.bookdto.BookSearchParametersDto;
+import com.example.bookstore.dto.bookdto.CreateBookRequestDto;
 import com.example.bookstore.exception.EntityNotFoundException;
 import com.example.bookstore.mapper.BookMapper;
 import com.example.bookstore.model.Book;
@@ -10,6 +11,7 @@ import com.example.bookstore.repository.book.BookRepository;
 import com.example.bookstore.repository.book.BookSpecificationBuilder;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -71,5 +73,13 @@ public class BookServiceImpl implements BookService {
                 .stream()
                 .map(bookMapper::toDto)
                 .toList();
+    }
+
+    @Override
+    public List<BookDtoWithoutCategoryIds> findAllByCategoryId(Long categoryId, Pageable pageable) {
+        return bookRepository.findAllByCategoryId(categoryId, pageable)
+                .stream()
+                .map(bookMapper::toDtoWithoutCategories)
+                .collect(Collectors.toList());
     }
 }

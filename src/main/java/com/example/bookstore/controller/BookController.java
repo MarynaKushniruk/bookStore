@@ -1,8 +1,9 @@
 package com.example.bookstore.controller;
 
-import com.example.bookstore.dto.BookDto;
-import com.example.bookstore.dto.BookSearchParametersDto;
-import com.example.bookstore.dto.CreateBookRequestDto;
+import com.example.bookstore.dto.bookdto.BookDto;
+import com.example.bookstore.dto.bookdto.BookDtoWithoutCategoryIds;
+import com.example.bookstore.dto.bookdto.BookSearchParametersDto;
+import com.example.bookstore.dto.bookdto.CreateBookRequestDto;
 import com.example.bookstore.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Book management", description = "Endpoints for managing books")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(name = "/books")
+@RequestMapping(value = "/books")
 public class BookController {
     private final BookService bookService;
 
@@ -66,5 +67,11 @@ public class BookController {
     @Operation(summary = "Delete a book", description = "Delete a book by id")
     public void deleteBookById(@PathVariable Long id) {
         bookService.deleteById(id);
+    }
+
+    @GetMapping("/{id}/books")
+    public List<BookDtoWithoutCategoryIds> getBooksByCategoryId(@PathVariable Long id,
+                                                                Pageable pageable) {
+        return bookService.findAllByCategoryId(id, pageable);
     }
 }
