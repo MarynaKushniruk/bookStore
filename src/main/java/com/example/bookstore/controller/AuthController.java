@@ -1,9 +1,9 @@
 package com.example.bookstore.controller;
 
-import com.example.bookstore.dto.UserLoginRequestDto;
-import com.example.bookstore.dto.UserLoginResponseDto;
-import com.example.bookstore.dto.UserRegistrationRequestDto;
-import com.example.bookstore.dto.UserResponseDto;
+import com.example.bookstore.dto.userdto.UserLoginRequestDto;
+import com.example.bookstore.dto.userdto.UserLoginResponseDto;
+import com.example.bookstore.dto.userdto.UserRegistrationRequestDto;
+import com.example.bookstore.dto.userdto.UserResponseDto;
 import com.example.bookstore.exception.RegistrationException;
 import com.example.bookstore.service.AuthenticationService;
 import com.example.bookstore.service.UserService;
