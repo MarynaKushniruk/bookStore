@@ -2,11 +2,14 @@ package com.example.bookstore.service;
 
 import com.example.bookstore.dto.userdto.UserRegistrationRequestDto;
 import com.example.bookstore.dto.userdto.UserResponseDto;
+import com.example.bookstore.exception.EntityNotFoundException;
 import com.example.bookstore.exception.RegistrationException;
 import com.example.bookstore.mapper.UserMapper;
 import com.example.bookstore.model.User;
 import com.example.bookstore.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -28,5 +31,12 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         User userSaved = userRepository.save(user);
         return userMapper.toUserResponse(userSaved);
+    }
+
+    @Override
+    public User getAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new EntityNotFoundException("Can't found user with email"));
     }
 }
