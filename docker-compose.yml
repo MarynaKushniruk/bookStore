@@ -1,8 +1,9 @@
 version: "3.8"
 
 services:
-  mysqldb:
+  mysql:
     image: mysql
+    container_name: mysql
     restart: unless-stopped
     env_file:
       - ./.env
@@ -16,10 +17,13 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+    networks:
+      - db_app
   app:
     depends_on:
-      - mysqldb
+      - mysql
     image: book_store
+    container_name: app
     restart: unless-stopped
     build: .
     env_file:
@@ -32,6 +36,11 @@ services:
       "spring.datasource.url" : "jdbc:mysql://mysql:$MYSQL_DB_DOCKER_PORT/$MYSQLDB_DATABASE",
       "spring.datasource.username" : "$DB_NAME",
       "spring.datasource.password" : "$DB_PASSWORD",
-      "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.MySQL5Dialect"
+      "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.MySQLDialect"
       }'
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    networks:
+      - db_app
+networks:
+  db_app:
+    driver: bridge
