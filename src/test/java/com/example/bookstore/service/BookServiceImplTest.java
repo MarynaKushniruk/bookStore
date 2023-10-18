@@ -1,6 +1,7 @@
 package com.example.bookstore.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
@@ -15,6 +16,7 @@ import com.example.bookstore.dto.bookdto.CreateBookRequestDto;
 import com.example.bookstore.exception.EntityNotFoundException;
 import com.example.bookstore.mapper.BookMapper;
 import com.example.bookstore.model.Book;
+import com.example.bookstore.model.Category;
 import com.example.bookstore.repository.book.BookRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.testcontainers.shaded.org.apache.commons.lang3.builder.EqualsBuilder;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceImplTest {
@@ -109,24 +113,23 @@ public class BookServiceImplTest {
         verify(bookRepository, times(1)).deleteById(ID);
     }
 
-    /*@Test
+    @Test
+    @DisplayName("Update a book with valid id and dto")
     public void updateById_ValidId_UpdateBook() {
-        BookDto bookToUpdate = createBookDto();
-        Book bookOld = new Book();
-        bookOld.setId(ID);
-        bookOld.setTitle("Agamemnon");
-        bookOld.setAuthor("Eschyle");
-
-        BookDto expected = new BookDto().setTitle("Odyssey")
-                .setAuthor("Homer")
-                .setId(ID);
-        when((bookRepository.findById(ID))).thenReturn(Optional.of(bookOld));
-        when(bookRepository.save(bookOld)).thenReturn(bookOld);
-        when(bookMapper.toDto(bookOld)).thenReturn(expected);
-        BookDto actual = bookService.update(bookToUpdate, ID);
-        assertEquals(expected.getAuthor(), actual.getAuthor());
-        assertEquals(expected.getTitle(), actual.getTitle());
-    }*/
+        Long idExisted = 1L;
+        Book bookFromDB = getBook().setId(idExisted);
+        Book newBook = getBook().setTitle("Agamemnon").setAuthor("Eschyle");
+        CreateBookRequestDto requestDto = createBook().setTitle("Agamemnon").setAuthor("Eschyle");
+        BookDto responseBookDto = createBookDto().setTitle(newBook.getTitle())
+                .setAuthor(newBook.getAuthor());
+        when((bookRepository.findById(idExisted))).thenReturn(Optional.of(bookFromDB));
+        when(bookRepository.save(newBook)).thenReturn(newBook.setId(idExisted));
+        when(bookMapper.toDto(newBook)).thenReturn(responseBookDto);
+        BookDto actual = bookService.update(requestDto, ID);
+        assertNotNull(actual);
+        assertNotNull(actual.getId());
+        EqualsBuilder.reflectionEquals(responseBookDto, actual);
+    }
 
     @Test
     public void findAllByCategoryId_ValidCategoryId_ReturnListOfBooks() {
@@ -156,7 +159,8 @@ public class BookServiceImplTest {
                 .setTitle("Odyssey")
                 .setAuthor("Homer")
                 .setIsbn("98765432")
-                .setPrice(BigDecimal.valueOf(250.50));
+                .setPrice(BigDecimal.valueOf(250.50))
+                .setCategoryIds(Set.of(1L));
     }
 
     private BookDto createBookDto() {
@@ -167,5 +171,17 @@ public class BookServiceImplTest {
                 .setIsbn("98765432")
                 .setPrice(BigDecimal.valueOf(250.50))
                 .setCategoryIds(Set.of(1L));
+    }
+
+    private Book getBook() {
+        return new Book()
+                .setAuthor("Homer")
+                .setIsbn("987654332")
+                .setTitle("Odyssey")
+                .setDescription("Description")
+                .setPrice(BigDecimal.valueOf(250.50))
+                .setCoverImage("image.jpg")
+                .setCategories(Set.of(
+                        new Category().setId(1L)));
     }
 }
