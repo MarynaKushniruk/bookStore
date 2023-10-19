@@ -9,7 +9,7 @@ services:
       - ./.env
     environment:
       MYSQL_DATABASE: $MYSQLDB_DATABASE
-      MYSQL_PASSWORD: $DB_PASSWORD
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
       ports:
         -$MYSQL_DB_LOCAL_PORT:$MYSQL_DB_DOCKER_PORT
     healthcheck:
@@ -33,7 +33,7 @@ services:
       - $DEBUG_PORT:$DEBUG_PORT
     environment:
       SPRING_APPLICATION_JSON: '{
-      "spring.datasource.url" : "jdbc:mysql://mysql:$MYSQL_DB_DOCKER_PORT/$MYSQLDB_DATABASE",
+      "spring.datasource.url" : "jdbc:mysql://mysql:$MYSQL_DB_DOCKER_PORT/$MYSQLDB_DATABASE?serverTimeZone=UTC",
       "spring.datasource.username" : "$DB_NAME",
       "spring.datasource.password" : "$DB_PASSWORD",
       "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.MySQLDialect"
