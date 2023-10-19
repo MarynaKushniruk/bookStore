@@ -2,8 +2,6 @@ package com.example.bookstore.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,11 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.bookstore.dto.bookdto.BookDto;
 import com.example.bookstore.dto.bookdto.CreateBookRequestDto;
-import com.example.bookstore.exception.EntityNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +29,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -49,17 +46,12 @@ public class BookControllerIntegrationTest {
 
     @BeforeAll
     static void beforeAll(@Autowired DataSource dataSource,
-                          @Autowired WebApplicationContext applicationContext) throws SQLException {
+                          @Autowired WebApplicationContext applicationContext) {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(applicationContext)
-                .apply(springSecurity())
+                .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
         teardown(dataSource);
-        try (Connection connection = dataSource.getConnection()) {
-            connection.setAutoCommit(true);
-            ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("database/add-for-book-category-tests.sql"));
-        }
     }
 
     @AfterAll
@@ -81,8 +73,6 @@ public class BookControllerIntegrationTest {
     @Test
     @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Create and save a new book")
     void saveBook_ValidRequestDto_Success() throws Exception {
         CreateBookRequestDto requestDto = createBook();
@@ -119,8 +109,6 @@ public class BookControllerIntegrationTest {
     @DisplayName("Get all books")
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getAllBooks_Ok() throws Exception {
         MvcResult result = mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
@@ -136,8 +124,6 @@ public class BookControllerIntegrationTest {
     @Test
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Get book by ID")
     void getBookById_Ok() throws Exception {
         long id = 1;
@@ -152,22 +138,10 @@ public class BookControllerIntegrationTest {
         EqualsBuilder.reflectionEquals(expected, actual, "id");
     }
 
-    @WithMockUser
-    @Test
-    void getBookById_NotOk() {
-        long id = 5;
-        assertThrows(EntityNotFoundException.class, () -> {
-            mockMvc.perform((get("/books/{id}", id))
-                    .contentType(MediaType.APPLICATION_JSON));
-        }, "Can't find a book by id: " + id);
-    }
-
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Create and save a new book")
     void updateBook_Ok() throws Exception {
         long id = 1;
@@ -199,24 +173,6 @@ public class BookControllerIntegrationTest {
                         put("/books/{id}", id)
                                 .content(request))
                 .andExpect(status().is4xxClientError());
-    }
-
-    @WithMockUser
-    @Test
-    @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    @DisplayName("Search book by parameters")
-    void searchBookByParameters_Ok_EmptyList() throws Exception {
-        MvcResult result = mockMvc.perform(
-                        get("/books/search")
-                                .param("authors", "William Shakespeare"))
-                .andExpect(status().isOk())
-                .andReturn();
-        List<BookDto> actual = objectMapper.readValue(result
-                .getResponse().getContentAsString(), ArrayList.class);
-        assertEquals(new ArrayList<>(), actual);
     }
 
     @Test

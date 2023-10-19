@@ -2,7 +2,6 @@ package com.example.bookstore.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,7 +13,6 @@ import com.example.bookstore.dto.categorydto.CategoryDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +28,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -44,17 +43,12 @@ public class CategoryControllerIntegrationTest {
 
     @BeforeAll
     static void beforeAll(@Autowired DataSource dataSource,
-                          @Autowired WebApplicationContext applicationContext) throws SQLException {
+                          @Autowired WebApplicationContext applicationContext) {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(applicationContext)
-                .apply(springSecurity())
+                .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
         teardown(dataSource);
-        try (Connection connection = dataSource.getConnection()) {
-            connection.setAutoCommit(true);
-            ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("database/add-for-book-category-tests.sql"));
-        }
     }
 
     @AfterAll
@@ -76,8 +70,6 @@ public class CategoryControllerIntegrationTest {
     @Test
     @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void createCategory_ValidRequestDto_Success() throws Exception {
         CategoryDto categoryDto = new CategoryDto()
                 .setId(1L)
@@ -116,8 +108,6 @@ public class CategoryControllerIntegrationTest {
     @DisplayName("Find and return list of existing categories")
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getAll_ValidRequest_ReturnListOfCategories() throws Exception {
         MvcResult result = mockMvc.perform(get("/categories"))
                 .andExpect(status().isOk())
@@ -150,8 +140,6 @@ public class CategoryControllerIntegrationTest {
     @WithMockUser
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getCategoryById_InValidId_GetError() throws Exception {
         long categoryId = 3;
         mockMvc.perform(get("/categories/{id}", categoryId))
@@ -163,8 +151,6 @@ public class CategoryControllerIntegrationTest {
     @DisplayName("Update existing category by Id")
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void updateCategory_validId_Success() throws Exception {
         long id = 1;
         CategoryDto updateCategoryRequest = new CategoryDto()
@@ -201,8 +187,6 @@ public class CategoryControllerIntegrationTest {
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void deleteCategory_Success() throws Exception {
         mockMvc.perform(delete("/categories/{id}", 1L))
