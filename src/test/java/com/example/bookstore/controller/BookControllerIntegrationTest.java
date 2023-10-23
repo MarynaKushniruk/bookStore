@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -54,8 +54,8 @@ public class BookControllerIntegrationTest {
         teardown(dataSource);
     }
 
-    @AfterAll
-    static void afterAll(@Autowired DataSource dataSource) {
+    @AfterEach
+     void afterEach(@Autowired DataSource dataSource) {
         teardown(dataSource);
     }
 
@@ -69,8 +69,8 @@ public class BookControllerIntegrationTest {
         }
     }
 
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @DisplayName("Create and save a new book")
@@ -86,13 +86,12 @@ public class BookControllerIntegrationTest {
         BookDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsString(), BookDto.class);
         Assertions.assertNotNull(actual);
-        Assertions.assertNotNull(actual.getId());
         EqualsBuilder.reflectionEquals(expected, actual, "id");
 
     }
 
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void createBook_InValidRequestDto_Failed() throws Exception {
         CreateBookRequestDto requestDto = new CreateBookRequestDto()
                 .setTitle("Odyssey")
@@ -104,8 +103,8 @@ public class BookControllerIntegrationTest {
                 .andExpect(status().is4xxClientError());
     }
 
-    @WithMockUser
     @Test
+    @WithMockUser
     @DisplayName("Get all books")
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -114,52 +113,64 @@ public class BookControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         List<BookDto> expected = new ArrayList<>();
-        expected.add(createBookDto());
+        expected.add(createBookDto().setId(1L));
         BookDto[] actual = objectMapper.readValue(result.getResponse()
                 .getContentAsString(), BookDto[].class);
         assertEquals(expected, List.of(actual));
     }
 
-    @WithMockUser
     @Test
+    @WithMockUser
+    @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getBooksByCategoryId_Success() throws Exception {
+        MvcResult result = mockMvc.perform(get("/books/1/books")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        BookDto[] actual = objectMapper.readValue(result.getResponse()
+                .getContentAsString(), BookDto[].class);
+        assertEquals(1, actual.length);
+        assertEquals(actual[0].getTitle(), "Odyssey");
+    }
+
+    @Test
+    @WithMockUser
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @DisplayName("Get book by ID")
     void getBookById_Ok() throws Exception {
-        long id = 1;
-        MvcResult result = mockMvc.perform(get("//books/{id}", id))
+        MvcResult result = mockMvc.perform(get("/books/1")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        BookDto expected = createBookDto();
         BookDto actual = objectMapper.readValue(result.getResponse()
                         .getContentAsString(), BookDto.class);
         assertNotNull(actual);
-        assertEquals(id, actual.getId());
-        EqualsBuilder.reflectionEquals(expected, actual, "id");
+        assertEquals(1L, actual.getId());
+        assertEquals("Odyssey", actual.getTitle());
     }
 
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
-    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @DisplayName("Create and save a new book")
     void updateBook_Ok() throws Exception {
         long id = 1;
         BookDto updatedBookRequest = createBookDto().setIsbn("12345678");
+        BookDto responseDto = createBookDto().setIsbn("12345678").setId(1L);
         String request = objectMapper.writeValueAsString(updatedBookRequest);
-        MvcResult result = mockMvc.perform(put("//books/{id}", id)
+        MvcResult result = mockMvc.perform(put("/books/1")
                         .content(request)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        BookDto expected = createBookDto()
-                .setId(id)
-                .setIsbn("12345678");
         BookDto actual = objectMapper.readValue(result
                 .getResponse()
                 .getContentAsString(), BookDto.class);
         assertNotNull(actual);
-        assertEquals(expected, actual);
+        EqualsBuilder.reflectionEquals(responseDto, actual);
     }
 
     @Test
@@ -179,9 +190,36 @@ public class BookControllerIntegrationTest {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @DisplayName("Delete a book from DB by ID")
     void deleteBook_ValidId_Success() throws Exception {
-        long id = 1;
-        mockMvc.perform(delete("/books/{id}", id))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(delete("/books/delete/1").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent())
+                .andReturn();
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("Returns 'Forbidden' status if user tries to go to admin`s endpoints")
+    @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    public void userGoesToAdminsEndpoints_ReturnsForbiddenStatus() throws Exception {
+        BookDto requestDto = createBookDto();
+        String jsonRequest = objectMapper.writeValueAsString(requestDto);
+
+        mockMvc.perform(post("/books")
+                        .content(jsonRequest)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn();
+
+        mockMvc.perform(put("/books/1")
+                        .content(jsonRequest)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn();
+
+        mockMvc.perform(delete("/books/delete/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn();
     }
 
     private static CreateBookRequestDto createBook() {
@@ -189,16 +227,16 @@ public class BookControllerIntegrationTest {
                 .setTitle("Odyssey")
                 .setAuthor("Homer")
                 .setIsbn("98765432")
-                .setPrice(BigDecimal.valueOf(250.50));
+                .setPrice(BigDecimal.valueOf(251))
+                .setCategoryIds(Set.of(1L));
     }
 
     private static BookDto createBookDto() {
         return new BookDto()
-                .setId(1L)
-                .setTitle("Book 1")
-                .setAuthor("Author 1")
-                .setIsbn("13245768")
-                .setPrice(BigDecimal.valueOf(350.05))
+                .setTitle("Odyssey")
+                .setAuthor("Homer")
+                .setIsbn("98765432")
+                .setPrice(BigDecimal.valueOf(251))
                 .setCategoryIds(Set.of(1L));
     }
 }
