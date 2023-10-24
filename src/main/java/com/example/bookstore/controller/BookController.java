@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/books")
 public class BookController {
+
     private final BookService bookService;
 
     @GetMapping
