@@ -36,10 +36,11 @@ public class User implements UserDetails {
     private String email;
     @NotNull
     private String password;
-    @NotNull
+    @Column(name = "first_name", nullable = false)
     private String firstName;
-    @NotNull
+    @Column(name = "last_name", nullable = false)
     private String lastName;
+    @Column(name = "shipping_address", nullable = false)
     private String shippingAddress;
     @OneToMany
     @JoinTable(name = "user_roles",
