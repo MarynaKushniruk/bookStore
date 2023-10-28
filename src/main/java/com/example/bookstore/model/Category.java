@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -19,6 +20,7 @@ import org.hibernate.annotations.Where;
 @Getter
 @Setter
 @Data
+@Accessors(chain = true)
 @Table(name = "categories")
 public class Category {
     @Id
