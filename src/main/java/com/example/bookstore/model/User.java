@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,6 +28,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Where(clause = "is_deleted=false")
 @Table(name = "users")
 @Data
+@Accessors(chain = true)
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,10 +38,11 @@ public class User implements UserDetails {
     private String email;
     @NotNull
     private String password;
-    @NotNull
+    @Column(name = "first_name", nullable = false)
     private String firstName;
-    @NotNull
+    @Column(name = "last_name", nullable = false)
     private String lastName;
+    @Column(name = "shipping_address", nullable = false)
     private String shippingAddress;
     @OneToMany
     @JoinTable(name = "user_roles",
