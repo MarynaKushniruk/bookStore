@@ -44,7 +44,7 @@ public class BookController {
         return bookService.getBookById(id);
     }
 
-    @PreAuthorize("hasRole({'ADMIN'})")
+    @PreAuthorize("hasAuthority({'ADMIN'})")
     @PostMapping
     @Operation(summary = "Create a book", description = "Create and save a new book")
     @ResponseStatus(HttpStatus.CREATED)
@@ -59,14 +59,14 @@ public class BookController {
         return bookService.search(searchParameters);
     }
 
-    @PreAuthorize("hasRole({'ADMIN'})")
+    @PreAuthorize("hasAuthority({'ADMIN'})")
     @PutMapping("/{id}")
     @Operation(summary = "Update a book", description = "Update a book by id")
     public BookDto updateBookById(@RequestBody CreateBookRequestDto book, @PathVariable Long id) {
         return bookService.update(book, id);
     }
 
-    @PreAuthorize("hasRole({'ADMIN'})")
+    @PreAuthorize("hasAuthority({'ADMIN'})")
     @DeleteMapping("/delete/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete a book", description = "Delete a book by id")

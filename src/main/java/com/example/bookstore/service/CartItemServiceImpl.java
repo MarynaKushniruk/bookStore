@@ -43,7 +43,7 @@ public class CartItemServiceImpl implements CartItemService {
     @Override
     public CartItemResponseDto addCartItem(String email, CartItemRequestDto cartItemRequestDto) {
         User user = getUserByEmail(email);
-        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(user.getId())
+        ShoppingCart shoppingCart = shoppingCartRepository.findShoppingCartByUser_Id(user.getId())
                 .orElseGet(() -> registerNewShoppingCart(user));
         Optional<CartItem> existingCartItem = shoppingCart.getCartItems().stream()
                 .filter(item -> item.getBook().getId().equals(cartItemRequestDto.getBookId()))

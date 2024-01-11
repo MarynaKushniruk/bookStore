@@ -27,3 +27,19 @@ databaseChangeLog:
       file: db/changelog/changes/13-update-user_roles-table.yaml
   - include:
       file: db/changelog/changes/14-update-users-table.yaml
+  - include:
+      file: db/changelog/changes/15-insert-roles.yaml
+  - include:
+      file: db/changelog/changes/16-insert-user_roles-table.yaml
+  - include:
+      file: db/changelog/changes/17-insert-user_roles-2-table.yaml
+  - include:
+      file: db/changelog/changes/18-insert-users-1-table.yaml
+  - include:
+      file: db/changelog/changes/19-insert-users-2-table.yaml
+  - include:
+      file: db/changelog/changes/20-insert_user_roles-3-table.yaml
+  - include:
+      file: db/changelog/changes/21-inser-user_roles-4-table.yaml
+  - include:
+      file: db/changelog/changes/22-insert-books_categories-table.yaml

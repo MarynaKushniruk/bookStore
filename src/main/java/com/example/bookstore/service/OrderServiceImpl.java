@@ -38,7 +38,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException(
                 "Can't find user by email " + email));
         ShoppingCart shoppingCart = shoppingCartRepository
-                .findByUserId(user.getId()).orElseThrow(() ->
+                .findShoppingCartByUser_Id(user.getId()).orElseThrow(() ->
                         new EntityNotFoundException(
                 "Can't find shopping cart by userId " + user.getId()));
         Order order = createOrder(user, requestDto, shoppingCart);

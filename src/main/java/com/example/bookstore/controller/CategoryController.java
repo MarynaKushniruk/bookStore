@@ -1,6 +1,7 @@
 package com.example.bookstore.controller;
 
-import com.example.bookstore.dto.categorydto.CategoryDto;
+import com.example.bookstore.dto.categorydto.CategoryRequestDto;
+import com.example.bookstore.dto.categorydto.CategoryResponseDto;
 import com.example.bookstore.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,38 +29,38 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @PreAuthorize("hasRole({'ADMIN'})")
     @PostMapping
+    @PreAuthorize("hasAuthority({'ADMIN'})")
     @Operation(summary = "Create a category", description = "Create and save a new category")
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryDto createCategory(@RequestBody @Valid CategoryDto categoryDto) {
+    public CategoryResponseDto createCategory(@RequestBody @Valid CategoryRequestDto categoryDto) {
         return categoryService.save(categoryDto);
     }
 
     @GetMapping
     @Operation(summary = "Get all categories", description =
             "Get a list of all available categories")
-    public List<CategoryDto> getAll(Pageable pageable) {
+    public List<CategoryResponseDto> getAll(Pageable pageable) {
 
         return categoryService.findAll(pageable);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get category by id", description = "Get category by id")
-    public CategoryDto getCategoryById(@PathVariable Long id) {
+    public CategoryResponseDto getCategoryById(@PathVariable Long id) {
 
         return categoryService.getById(id);
     }
 
-    @PreAuthorize("hasRole({'ADMIN'})")
+    @PreAuthorize("hasAuthority({'ADMIN'})")
     @PutMapping("/{id}")
     @Operation(summary = "Update a category", description = "Update a category by id")
-    public CategoryDto updateCategory(@PathVariable Long id,
-                                      @RequestBody CategoryDto categoryDto) {
+    public CategoryResponseDto updateCategory(@PathVariable Long id,
+                                              @RequestBody CategoryResponseDto categoryDto) {
         return categoryService.update(id, categoryDto);
     }
 
-    @PreAuthorize("hasRole({'ADMIN'})")
+    @PreAuthorize("hasAuthority({'ADMIN'})")
     @DeleteMapping("/delete/{id}")
     @Operation(summary = "Delete a category", description = "Delete a category by id")
     @ResponseStatus(HttpStatus.NO_CONTENT)

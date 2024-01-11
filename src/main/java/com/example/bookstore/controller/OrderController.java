@@ -59,7 +59,7 @@ public class OrderController {
         return orderService.getOrderItemsByOrderId(orderId);
     }
 
-    @PreAuthorize("hasRole({'ADMIN'})")
+    @PreAuthorize("hasAuthority({'ADMIN'})")
     @PutMapping("/{id}")
     @Operation(summary = "Update the status of the order by id")
 

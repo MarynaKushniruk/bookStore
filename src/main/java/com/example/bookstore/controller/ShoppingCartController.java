@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(value = "/cart")
-@PreAuthorize("hasRole('ROLE_USER')")
 public class ShoppingCartController {
     private final ShoppingCartService shoppingCartService;
     private final CartItemService cartItemService;
@@ -50,8 +49,8 @@ public class ShoppingCartController {
     }
 
     @PutMapping("/cart-items/{cartItemId}")
-    @Operation(summary = "Update a category", description =
-            "Update a category by id")
+    @Operation(summary = "Update quantity of items", description =
+            "Update quantity of items in shopping cart")
     public ShoppingCartResponseDto updateQuantityOfItems(@RequestBody @Valid
                                                          CartItemUpdateQuantityDto
                                                                  cartItemDto,
@@ -69,6 +68,13 @@ public class ShoppingCartController {
             @PathVariable Long cartItemId, Authentication authentication) {
         cartItemService.delete(cartItemId);
         return shoppingCartService.getShoppingCardByUserEmail(authentication.getName());
+    }
+
+    @DeleteMapping("/delete/{cartId}")
+    @PreAuthorize("hasAuthority({'ADMIN'})")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteShoppingCart(@PathVariable Long cartId) {
+        shoppingCartService.deleteById(cartId);
     }
 }
 

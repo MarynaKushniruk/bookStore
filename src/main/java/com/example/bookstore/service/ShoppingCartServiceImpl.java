@@ -26,6 +26,11 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return shoppingCartMapper.toDto(shoppingCart);
     }
 
+    @Override
+    public void deleteById(Long id) {
+        shoppingCartRepository.deleteById(id);
+    }
+
     private ShoppingCart registerNewShoppingCart(User user) {
         ShoppingCart shoppingCart = new ShoppingCart();
         shoppingCart.setUser(user);

@@ -4,4 +4,6 @@ import com.example.bookstore.dto.shoppingcart.ShoppingCartResponseDto;
 
 public interface ShoppingCartService {
     ShoppingCartResponseDto getShoppingCardByUserEmail(String email);
+
+    void deleteById(Long cartId);
 }
