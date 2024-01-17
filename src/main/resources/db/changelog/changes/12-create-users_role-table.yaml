@@ -1,9 +1,9 @@
 databaseChangeLog:
   - changeSet:
-      id: update-user_roles-table
+      id: create-user_roles-table
       author: root
       changes:
-        - update:
+        - createTable:
             tableName: user_roles
             columns:
               - column:

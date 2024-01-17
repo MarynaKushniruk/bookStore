@@ -13,9 +13,12 @@ import com.example.bookstore.repository.book.BookRepository;
 import com.example.bookstore.repository.cartitem.CartItemRepository;
 import com.example.bookstore.repository.shoppingcart.ShoppingCartRepository;
 import com.example.bookstore.repository.user.UserRepository;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,21 +44,33 @@ public class CartItemServiceImpl implements CartItemService {
     }
 
     @Override
+    @Transactional
     public CartItemResponseDto addCartItem(String email, CartItemRequestDto cartItemRequestDto) {
+        CartItem cartItem = createNewCartItem(cartItemRequestDto);
         User user = getUserByEmail(email);
+        setShoppingCartAndCartItems(user, cartItem);
+        return cartItemMapper.toDto(cartItemRepository.save(cartItem));
+    }
+
+    @Override
+    public Set<CartItemResponseDto> findByShoppingCartId(Long id) {
+        return cartItemRepository.findCartItemsByShoppingCartId(id).stream()
+                .map(cartItemMapper::toDto)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void setShoppingCartAndCartItems(User user, CartItem cartItem) {
         ShoppingCart shoppingCart = shoppingCartRepository.findShoppingCartByUser_Id(user.getId())
                 .orElseGet(() -> registerNewShoppingCart(user));
-        Optional<CartItem> existingCartItem = shoppingCart.getCartItems().stream()
-                .filter(item -> item.getBook().getId().equals(cartItemRequestDto.getBookId()))
-                .findFirst();
-        CartItem cartItem;
-        if (existingCartItem.isPresent()) {
-            cartItem = existingCartItem.get();
-            cartItem.setQuantity(cartItemRequestDto.getQuantity());
+        cartItem.setShoppingCart(shoppingCart);
+        Set<CartItem> cartItems = new HashSet<>();
+        cartItems.add(cartItem);
+        if (shoppingCart.getCartItems().isEmpty()) {
+            shoppingCart.setCartItems(cartItems);
         } else {
-            cartItem = createNewCartItem(cartItemRequestDto, shoppingCart);
+            shoppingCart.getCartItems().add(cartItem);
         }
-        return cartItemMapper.toDto(cartItemRepository.save(cartItem));
     }
 
     private ShoppingCart registerNewShoppingCart(User user) {
@@ -64,8 +79,7 @@ public class CartItemServiceImpl implements CartItemService {
         return shoppingCartRepository.save(shoppingCart);
     }
 
-    private CartItem createNewCartItem(CartItemRequestDto cartItemRequestDto,
-                                       ShoppingCart shoppingCart) {
+    private CartItem createNewCartItem(CartItemRequestDto cartItemRequestDto) {
         Book book = bookRepository
                 .findById(cartItemRequestDto.getBookId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -73,7 +87,7 @@ public class CartItemServiceImpl implements CartItemService {
                                 + cartItemRequestDto.getBookId()));
         CartItem cartItem = cartItemMapper.toModel(cartItemRequestDto);
         cartItem.setBook(book);
-        cartItem.setShoppingCart(shoppingCart);
+        cartItem.setQuantity(cartItemRequestDto.getQuantity());
         return cartItem;
     }
 

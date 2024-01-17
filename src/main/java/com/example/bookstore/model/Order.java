@@ -37,6 +37,6 @@ public class Order {
     private LocalDateTime orderDate;
     @NotNull
     private String shippingAddress;
-    @OneToMany
+    @OneToMany(mappedBy = "order")
     private Set<OrderItem> orderItems;
 }
