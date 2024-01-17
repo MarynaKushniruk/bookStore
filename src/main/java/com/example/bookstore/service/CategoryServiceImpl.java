@@ -1,6 +1,7 @@
 package com.example.bookstore.service;
 
-import com.example.bookstore.dto.categorydto.CategoryDto;
+import com.example.bookstore.dto.categorydto.CategoryRequestDto;
+import com.example.bookstore.dto.categorydto.CategoryResponseDto;
 import com.example.bookstore.exception.EntityNotFoundException;
 import com.example.bookstore.mapper.CategoryMapper;
 import com.example.bookstore.model.Category;
@@ -17,7 +18,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Override
-    public List<CategoryDto> findAll(Pageable pageable) {
+    public List<CategoryResponseDto> findAll(Pageable pageable) {
         return categoryRepository.findAll(pageable)
                 .stream()
                 .map(categoryMapper::toDto)
@@ -25,7 +26,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto getById(Long id) {
+    public CategoryResponseDto getById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Can't found "
                         + "category by id " + id));
@@ -33,13 +34,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto save(CategoryDto categoryDto) {
+    public CategoryResponseDto save(CategoryRequestDto categoryDto) {
         Category category = categoryMapper.toEntity(categoryDto);
         return categoryMapper.toDto(categoryRepository.save(category));
     }
 
     @Override
-    public CategoryDto update(Long id, CategoryDto categoryDto) {
+    public CategoryResponseDto update(Long id, CategoryResponseDto categoryDto) {
         Category categoryToUpdate = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Can't found "
                         + "category by id " + id));

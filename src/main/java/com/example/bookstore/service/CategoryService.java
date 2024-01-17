@@ -1,17 +1,18 @@
 package com.example.bookstore.service;
 
-import com.example.bookstore.dto.categorydto.CategoryDto;
+import com.example.bookstore.dto.categorydto.CategoryRequestDto;
+import com.example.bookstore.dto.categorydto.CategoryResponseDto;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
-    List<CategoryDto> findAll(Pageable pageable);
+    List<CategoryResponseDto> findAll(Pageable pageable);
 
-    CategoryDto getById(Long id);
+    CategoryResponseDto getById(Long id);
 
-    CategoryDto save(CategoryDto categoryDto);
+    CategoryResponseDto save(CategoryRequestDto categoryDto);
 
-    CategoryDto update(Long id, CategoryDto categoryDto);
+    CategoryResponseDto update(Long id, CategoryResponseDto categoryDto);
 
     void deleteById(Long id);
 }

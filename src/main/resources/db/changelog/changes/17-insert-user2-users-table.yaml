@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-user2
+      author: root
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: email, value: 'anna@gmail.com' }
+              - column: { name: password, value: '$2a$10$pfq4vkFwNBtli/u4ZAOUwOj39zkW/6tW4MWhgHcJIkZJe4UeeRGpS'}
+              - column: { name: first_name, value: 'Anna' }
+              - column: { name: last_name, value: 'Lence' }
+              - column: { name: shipping_address, value: '40 Downton St.' }
+              - column: { name: is_deleted, valueBoolean: "false" }

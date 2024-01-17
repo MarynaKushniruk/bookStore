@@ -1,11 +1,10 @@
 package com.example.bookstore.dto.order;
 
-import com.example.bookstore.model.OrderItem;
+import com.example.bookstore.dto.orderitem.OrderItemResponseDto;
 import com.example.bookstore.model.Status;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,6 +24,5 @@ public class OrderResponseDto {
     private BigDecimal total;
     @NotNull
     private LocalDateTime orderDate;
-    @OneToMany
-    private Set<OrderItem> orderItems;
+    private Set<OrderItemResponseDto> orderItems;
 }

@@ -2,13 +2,16 @@ package com.example.bookstore.dto.userdto;
 
 import com.example.bookstore.validation.FieldMatch;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldMatch(first = "password", second = "repeatPassword", message = "Passwords must match")
 public class UserRegistrationRequestDto {
-    @FieldMatch(first = "password", second = "repeatPassword")
 
     @NotBlank
     @Size(min = 4, max = 50)
@@ -21,10 +24,11 @@ public class UserRegistrationRequestDto {
     @NotBlank
     @Size(min = 6, max = 100)
     private String repeatPassword;
-    @NotNull
+    @NotBlank
     private String firstName;
-    @NotNull
+    @NotBlank
     private String lastName;
-    @NotNull
+    @NotBlank
     private String shippingAddress;
+
 }
