@@ -93,6 +93,6 @@ public class CartItemServiceImpl implements CartItemService {
 
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(
-                () -> new EntityNotFoundException("Can not find user by email" + email));
+                () -> new EntityNotFoundException("Can not find user by email " + email));
     }
 }

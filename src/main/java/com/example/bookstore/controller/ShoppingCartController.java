@@ -61,7 +61,6 @@ public class ShoppingCartController {
     @DeleteMapping("/cart-items/{cartItemId}")
     @Operation(summary = "Delete a cart item",
             description = "Delete a cart item from shopping cart by id")
-    @PreAuthorize("hasAuthority({'ADMIN'})")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteItemFromShoppingCart(
             @PathVariable Long cartItemId, Authentication authentication) {
