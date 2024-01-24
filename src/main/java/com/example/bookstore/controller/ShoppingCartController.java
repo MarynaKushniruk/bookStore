@@ -63,7 +63,7 @@ public class ShoppingCartController {
             description = "Delete a cart item from shopping cart by id")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteItemFromShoppingCart(
-            @PathVariable Long cartItemId, Authentication authentication) {
+            @PathVariable Long cartItemId) {
         cartItemService.delete(cartItemId);
     }
 

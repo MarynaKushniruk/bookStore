@@ -159,7 +159,6 @@ public class BookControllerIntegrationTests {
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @DisplayName("Create and save a new book")
     void updateBook_Ok() throws Exception {
-        long id = 1;
         BookDto updatedBookRequest = createBookDto().setIsbn("12345678");
         BookDto responseDto = createBookDto().setIsbn("12345678").setId(1L);
         String request = objectMapper.writeValueAsString(updatedBookRequest);
