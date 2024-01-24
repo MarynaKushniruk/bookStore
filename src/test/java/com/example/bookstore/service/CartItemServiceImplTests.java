@@ -128,10 +128,5 @@ public class CartItemServiceImplTests {
         return new CartItemResponseDto().setId(ID)
                 .setBookId(ID).setBookTitle(book.getTitle()).setAuthor("Homer").setQuantity(2);
     }
-
-    private ShoppingCartResponseDto createShoppingCartDto() {
-        return new ShoppingCartResponseDto().setId(ID)
-                .setCartItems(Set.of(createCartItemDto())).setUserId(ID);
-    }
 }
 
