@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.example.bookstore.dto.cartitem.CartItemResponseDto;
 import com.example.bookstore.dto.shoppingcart.ShoppingCartResponseDto;
 import com.example.bookstore.mapper.CartItemMapper;
-import com.example.bookstore.mapper.ShoppingCartMapper;
 import com.example.bookstore.model.Book;
 import com.example.bookstore.model.CartItem;
 import com.example.bookstore.model.ShoppingCart;
@@ -37,8 +36,6 @@ public class ShoppingCartServiceImplTests {
     private ShoppingCartRepository shoppingCartRepository;
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private ShoppingCartMapper shoppingCartMapper;
     @Mock
     private CartItemMapper cartItemMapper;
     @InjectMocks
@@ -85,7 +82,7 @@ public class ShoppingCartServiceImplTests {
         when(cartItemMapper.toDto(cartItem)).thenReturn(createCartItemDto());
         ShoppingCartResponseDto actual = shoppingCartService.getShoppingCardByUserEmail(EMAIL);
         assertNotNull(actual);
-        assertEquals(1L, actual.getId());
+        assertEquals(expected.getId(), actual.getId());
         verify(userRepository, times(1)).findByEmail(EMAIL);
         verify(shoppingCartRepository, times(1)).findShoppingCartByUser_Id(ID);
     }
