@@ -14,9 +14,10 @@ import com.example.bookstore.dto.cartitem.CartItemUpdateQuantityDto;
 import com.example.bookstore.dto.shoppingcart.ShoppingCartResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
+import java.sql.SQLException;
 import javax.sql.DataSource;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,16 +46,22 @@ public class ShoppingCartControllerIntegrationTests {
 
     @BeforeAll
     static void beforeAll(@Autowired DataSource dataSource,
-                          @Autowired WebApplicationContext applicationContext) {
+                          @Autowired WebApplicationContext applicationContext) throws SQLException {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(applicationContext)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
         teardown(dataSource);
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(true);
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("database/delete-for-shopping_cart-cart_item-tests.sql")
+            );
+        }
     }
 
-    @AfterEach
-    void afterEach(@Autowired DataSource dataSource) {
+    @AfterAll
+    static void afterAll(@Autowired DataSource dataSource) {
         teardown(dataSource);
     }
 
@@ -72,6 +79,8 @@ public class ShoppingCartControllerIntegrationTests {
     @WithMockUser(username = "admin@gmail.com")
     @Sql(scripts = "classpath:database/add-for-shopping_cart-cart_item-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-shopping_cart-cart_item-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getShoppingCart_returnShoppingCartResponseDto_Ok() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/cart")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -89,6 +98,8 @@ public class ShoppingCartControllerIntegrationTests {
     @WithMockUser(username = "admin@gmail.com")
     @Sql(scripts = "classpath:database/add-for-shopping_cart-cart_item-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-shopping_cart-cart_item-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void addCartItemToShoppingCart_returnShoppingCartResponseDto_Ok() throws Exception {
         CartItemRequestDto requestDto = createCartItemRequestDto();
         CartItemResponseDto expected = createCartItemDto();
@@ -111,6 +122,8 @@ public class ShoppingCartControllerIntegrationTests {
     @DisplayName("Update books quantity in shopping cart")
     @Sql(scripts = "classpath:database/add-for-shopping_cart-cart_item-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-shopping_cart-cart_item-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void updateQuantityOfItems_ValidQuantity_Ok() throws Exception {
         CartItemUpdateQuantityDto updateRequest = new CartItemUpdateQuantityDto()
                 .setQuantity(8);
@@ -132,6 +145,8 @@ public class ShoppingCartControllerIntegrationTests {
     @WithMockUser(username = "admin@gmail.com")
     @Sql(scripts = "classpath:database/add-for-shopping_cart-cart_item-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-shopping_cart-cart_item-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void deleteItemFromShoppingCart_Ok() throws Exception {
         mockMvc.perform(delete("/cart/cart-items/1")
                         .contentType(MediaType.APPLICATION_JSON))

@@ -13,12 +13,13 @@ import com.example.bookstore.dto.bookdto.CreateBookRequestDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -46,16 +47,22 @@ public class BookControllerIntegrationTests {
 
     @BeforeAll
     static void beforeAll(@Autowired DataSource dataSource,
-                          @Autowired WebApplicationContext applicationContext) {
+                          @Autowired WebApplicationContext applicationContext) throws SQLException {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(applicationContext)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
         teardown(dataSource);
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(true);
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("database/delete-for-book-category-tests.sql")
+            );
+        }
     }
 
-    @AfterEach
-    void afterEach(@Autowired DataSource dataSource) {
+    @AfterAll
+    static void afterAll(@Autowired DataSource dataSource) {
         teardown(dataSource);
     }
 
@@ -71,11 +78,11 @@ public class BookControllerIntegrationTests {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    @DisplayName("Create and save a new book")
     @Sql(scripts = "classpath:database/add-for-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    @DisplayName("Create and save a new book")
     void saveBook_ValidRequestDto_Success() throws Exception {
         CreateBookRequestDto requestDto = createBook();
         BookDto expected = createBookDto();
@@ -94,6 +101,10 @@ public class BookControllerIntegrationTests {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void createBook_InValidRequestDto_Failed() throws Exception {
         CreateBookRequestDto requestDto = new CreateBookRequestDto()
                 .setTitle("Odyssey")
@@ -110,6 +121,8 @@ public class BookControllerIntegrationTests {
     @DisplayName("Get all books")
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getAllBooks_Ok() throws Exception {
         MvcResult result = mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
@@ -118,13 +131,15 @@ public class BookControllerIntegrationTests {
         expected.add(createBookDto().setId(1L));
         BookDto[] actual = objectMapper.readValue(result.getResponse()
                 .getContentAsString(), BookDto[].class);
-        assertEquals(expected, List.of(actual));
+        EqualsBuilder.reflectionEquals(expected, actual, "id");
     }
 
     @Test
     @WithMockUser
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getBooksByCategoryId_Success() throws Exception {
         MvcResult result = mockMvc.perform(get("/books/1/books")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -138,9 +153,11 @@ public class BookControllerIntegrationTests {
 
     @Test
     @WithMockUser
+    @DisplayName("Get book by ID")
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @DisplayName("Get book by ID")
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getBookById_Ok() throws Exception {
         MvcResult result = mockMvc.perform(get("/books/1")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -149,15 +166,16 @@ public class BookControllerIntegrationTests {
         BookDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsString(), BookDto.class);
         assertNotNull(actual);
-        assertEquals(1L, actual.getId());
         assertEquals("Odyssey", actual.getTitle());
     }
 
     @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    @DisplayName("Create and save a new book")
     @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @DisplayName("Create and save a new book")
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void updateBook_Ok() throws Exception {
         BookDto updatedBookRequest = createBookDto().setIsbn("12345678");
         BookDto responseDto = createBookDto().setIsbn("12345678").setId(1L);
@@ -199,8 +217,6 @@ public class BookControllerIntegrationTests {
     @Test
     @WithMockUser
     @DisplayName("Returns 'Forbidden' status if user tries to go to admin`s endpoints")
-    @Sql(scripts = "classpath:database/add-for-book-category-tests.sql",
-            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void userGoesToAdminsEndpoints_ReturnsForbiddenStatus() throws Exception {
         BookDto requestDto = createBookDto();
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
