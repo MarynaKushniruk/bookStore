@@ -28,7 +28,7 @@ public class CustomMySqlContainer extends MySQLContainer<CustomMySqlContainer> {
         System.setProperty("TEST_DB_USERNAME", mysqlContainer.getUsername());
         System.setProperty("TEST_DB_PASSWORD", mysqlContainer.getPassword());
         mysqlContainer.setWaitStrategy(Wait.defaultWaitStrategy()
-                .withStartupTimeout(Duration.of(60, SECONDS)));
+                .withStartupTimeout(Duration.of(4200, SECONDS)));
     }
 
     @Override
