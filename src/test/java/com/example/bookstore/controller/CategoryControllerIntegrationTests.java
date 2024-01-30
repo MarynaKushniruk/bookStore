@@ -12,12 +12,13 @@ import com.example.bookstore.dto.categorydto.CategoryRequestDto;
 import com.example.bookstore.dto.categorydto.CategoryResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.sql.DataSource;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,16 +44,22 @@ public class CategoryControllerIntegrationTests {
 
     @BeforeAll
     static void beforeAll(@Autowired DataSource dataSource,
-                          @Autowired WebApplicationContext applicationContext) {
+                          @Autowired WebApplicationContext applicationContext) throws SQLException {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(applicationContext)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
         teardown(dataSource);
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(true);
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("database/delete-for-book-category-tests.sql")
+            );
+        }
     }
 
-    @AfterEach
-    void afterEach(@Autowired DataSource dataSource) {
+    @AfterAll
+    static void afterAll(@Autowired DataSource dataSource) {
         teardown(dataSource);
     }
 
@@ -68,6 +75,10 @@ public class CategoryControllerIntegrationTests {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    @Sql(scripts = "classpath:database/add-for-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void createCategory_ValidRequestDto_Success() throws Exception {
         CategoryResponseDto categoryDto = new CategoryResponseDto()
                 .setId(1L)
@@ -89,6 +100,8 @@ public class CategoryControllerIntegrationTests {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void createCategory_InValidData_BadRequest() throws Exception {
         CategoryResponseDto invalidCategoryRequest = new CategoryResponseDto();
         String requestJson = objectMapper.writeValueAsString(invalidCategoryRequest);
@@ -103,6 +116,8 @@ public class CategoryControllerIntegrationTests {
     @DisplayName("Find and return list of existing categories")
     @Sql(scripts = "classpath:database/add-for-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getAll_ValidRequest_ReturnListOfCategories() throws Exception {
         MvcResult result = mockMvc.perform(get("/categories"))
                 .andExpect(status().isOk())
@@ -119,6 +134,8 @@ public class CategoryControllerIntegrationTests {
     @DisplayName("Get category by id")
     @Sql(scripts = "classpath:database/add-for-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getById_ValidId_ReturnCategory() throws Exception {
         MvcResult result = mockMvc.perform(get("/categories/1")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -136,6 +153,8 @@ public class CategoryControllerIntegrationTests {
     @DisplayName("Update existing category by Id")
     @Sql(scripts = "classpath:database/add-for-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void updateCategory_validId_Success() throws Exception {
         long id = 1;
         CategoryResponseDto updateCategoryRequest = new CategoryResponseDto()
@@ -159,6 +178,8 @@ public class CategoryControllerIntegrationTests {
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     @Sql(scripts = "classpath:database/add-for-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void deleteCategory_Success() throws Exception {
         mockMvc.perform(delete("/categories/delete/1")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -170,6 +191,8 @@ public class CategoryControllerIntegrationTests {
     @DisplayName("Returns 'Forbidden' status if user tries to go to admin`s endpoints")
     @Sql(scripts = "classpath:database/add-for-category-tests.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/delete-for-book-category-tests.sql",
+            executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void userGoesToAdminsEndpoints_ReturnsForbiddenStatus() throws Exception {
         CategoryRequestDto requestDto = new CategoryRequestDto()
                 .setName("Detective")
