@@ -23,8 +23,9 @@ services:
     depends_on:
       - mysql
     image: book_store
+    platform: linux/amd64
     container_name: app
-    restart: unless-stopped
+    restart: on-failure
     build: .
     env_file:
       - ./.env
